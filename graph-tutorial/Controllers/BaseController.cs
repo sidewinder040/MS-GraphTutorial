@@ -1,6 +1,10 @@
 ﻿using graph_tutorial.Models;
 using System.Collections.Generic;
 using System.Web.Mvc;
+using graph_tutorial.TokenStorage;
+using System.Security.Claims;
+using System.Web;
+using Microsoft.Owin.Security.Cookies;
 
 namespace graph_tutorial.Controllers
 {
@@ -19,6 +23,31 @@ namespace graph_tutorial.Controllers
             });
 
             TempData[Alert.AlertKey] = alerts;
+        }
+
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            if (Request.IsAuthenticated)
+            {
+                // Get the user's token cache
+                var tokenStore = new SessionTokenStore(null,
+                    System.Web.HttpContext.Current, ClaimsPrincipal.Current);
+
+                if (tokenStore.HasData())
+                {
+                    // Add the user to the view bag
+                    ViewBag.User = tokenStore.GetUserDetails();
+                }
+                else
+                {
+                    // The session has lost data. This happens often
+                    // when debugging. Log out so the user can log back in
+                    Request.GetOwinContext().Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType);
+                    filterContext.Result = RedirectToAction("Index", "Home");
+                }
+            }
+
+            base.OnActionExecuting(filterContext);
         }
     }
 }
