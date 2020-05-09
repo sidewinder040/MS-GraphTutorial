@@ -22,7 +22,8 @@ namespace graph_tutorial.Controllers
                 ev.End.TimeZone = TimeZoneInfo.Local.Id;
             }
 
-            return Json(events, JsonRequestBehavior.AllowGet);
+            // return Json(events, JsonRequestBehavior.AllowGet);
+            return View(events);
         }
     }
 }
